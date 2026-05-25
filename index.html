@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Risco Cardiovascular</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #F5F7FA;
+      color: #1a1a1a;
+      min-height: 100vh;
+      padding: 1.5rem 1rem 3rem;
+    }
+
+    .app {
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1F4E79;
+      line-height: 1.3;
+    }
+    .header p {
+      font-size: 13px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      border: 1px solid #E8ECF0;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .card-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Variáveis ── */
+    .var-block { margin-bottom: 1rem; }
+    .var-block:last-child { margin-bottom: 0; }
+
+    .var-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+    .var-name { font-size: 14px; font-weight: 500; color: #1a1a1a; }
+    .var-ref  { font-size: 11px; color: #999; }
+
+    .var-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type=range] {
+      flex: 1;
+      height: 4px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: #E0E7EF;
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #1F4E79;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    input[type=range]::-moz-range-thumb {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #1F4E79;
+      cursor: pointer;
+      border: none;
+    }
+
+    input[type=number] {
+      width: 68px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 5px 6px;
+      border: 1.5px solid #D0D8E4;
+      border-radius: 8px;
+      background: #F5F7FA;
+      color: #1a1a1a;
+      -moz-appearance: textfield;
+    }
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input[type=number]:focus {
+      outline: none;
+      border-color: #1F4E79;
+      background: #fff;
+    }
+
+    /* ── Risk display ── */
+    .risk-card {
+      background: #fff;
+      border-radius: 14px;
+      border: 1px solid #E8ECF0;
+      padding: 1.5rem 1.25rem 1.25rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .risk-label { font-size: 13px; color: #666; margin-bottom: 8px; }
+    .risk-num {
+      font-size: 64px;
+      font-weight: 700;
+      line-height: 1;
+      transition: color 0.3s;
+    }
+    .risk-num sup { font-size: 28px; font-weight: 600; }
+    .risk-badge {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 4px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+
+    .warning-box {
+      display: none;
+      background: #FFF8E1;
+      border: 1px solid #F9A825;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 1rem;
+      font-size: 12px;
+      color: #7A5800;
+      line-height: 1.5;
+    }
+    .warning-box.visible { display: block; }
+    .warning-box strong { font-weight: 600; }
+
+    /* ── Gauge ── */
+    .gauge-wrap {
+      position: relative;
+      height: 10px;
+      border-radius: 5px;
+      background: linear-gradient(to right, #1D9E75 0%, #EF9F27 50%, #E24B4A 100%);
+      margin: 14px 0 6px;
+      overflow: visible;
+    }
+    .gauge-overlay {
+      position: absolute;
+      top: 0; right: 0;
+      height: 100%;
+      background: #F5F7FA;
+      border-radius: 0 5px 5px 0;
+      transition: width 0.4s ease;
+    }
+    .gauge-pin {
+      position: absolute;
+      top: -4px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: #1a1a1a;
+      border: 3px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      transform: translateX(-50%);
+      transition: left 0.4s ease;
+    }
+    .gauge-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #aaa;
+      margin-top: 10px;
+    }
+
+    /* ── Intervenções ── */
+    .interv-group { margin-bottom: 0.75rem; }
+    .interv-group:last-child { margin-bottom: 0; }
+
+    .interv-group-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 0.5rem;
+      padding-left: 2px;
+    }
+
+    .interv-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      border: 1px solid #E8ECF0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 6px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .interv-desc { font-size: 13px; color: #444; }
+    .interv-desc small { display: block; font-size: 11px; color: #999; margin-top: 1px; }
+    .interv-pp {
+      font-size: 14px;
+      font-weight: 700;
+      min-width: 72px;
+      text-align: right;
+    }
+    .pp-good    { color: #1D9E75; }
+    .pp-neutral { color: #aaa; font-weight: 400; font-size: 12px; }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 2rem;
+      line-height: 1.7;
+    }
+    .footer strong { color: #888; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <h1>Risco Cardiovascular</h1>
+    <p>Modelo de regressão logística &mdash; 3 variáveis clínicas</p>
+  </div>
+
+  <!-- Inputs -->
+  <div class="card">
+    <div class="card-label">Dados do paciente</div>
+
+    <div class="var-block">
+      <div class="var-top">
+        <span class="var-name">Colesterol Total</span>
+        <span class="var-ref">ref: &lt; 200 mg/dL</span>
+      </div>
+      <div class="var-controls">
+        <input type="range" id="col-r" min="50" max="600" step="1" value="216">
+        <input type="number" id="col-n" min="50" max="600" value="216"> <span style="font-size:12px;color:#999">mg/dL</span>
+      </div>
+    </div>
+
+    <div class="var-block">
+      <div class="var-top">
+        <span class="var-name">Idade</span>
+        <span class="var-ref">&nbsp;</span>
+      </div>
+      <div class="var-controls">
+        <input type="range" id="age-r" min="10" max="90" step="1" value="49">
+        <input type="number" id="age-n" min="10" max="90" value="49"> <span style="font-size:12px;color:#999">anos</span>
+      </div>
+    </div>
+
+    <div class="var-block">
+      <div class="var-top">
+        <span class="var-name">Glicemia em jejum</span>
+        <span class="var-ref">ref: &lt; 100 mg/dL</span>
+      </div>
+      <div class="var-controls">
+        <input type="range" id="gli-r" min="30" max="600" step="1" value="120">
+        <input type="number" id="gli-n" min="30" max="600" value="120"> <span style="font-size:12px;color:#999">mg/dL</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Warning -->
+  <div class="warning-box" id="warn-box">
+    <strong>⚠ Atenção — valores fora da faixa de treinamento</strong><br>
+    O modelo foi treinado com Colesterol entre 150–310 mg/dL e Glicemia entre 60–180 mg/dL.
+    Valores além dessas faixas são extrapolações matemáticas válidas, mas com menor confiança clínica.
+  </div>
+
+  <!-- Risk -->
+  <div class="risk-card">
+    <div class="risk-label">Probabilidade de doença cardiovascular</div>
+    <div class="risk-num" id="risk-num">—<sup>%</sup></div>
+    <div class="gauge-wrap">
+      <div class="gauge-overlay" id="g-overlay"></div>
+      <div class="gauge-pin"     id="g-pin"></div>
+    </div>
+    <div class="gauge-labels"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+    <div class="risk-badge" id="risk-badge">—</div>
+  </div>
+
+  <!-- Intervenções -->
+  <div class="card">
+    <div class="card-label">Impacto de intervenções independentes</div>
+
+    <div class="interv-group">
+      <div class="interv-group-label">Se reduzir o Colesterol</div>
+      <div class="interv-row">
+        <div class="interv-desc">−20 mg/dL<small>mantendo as demais variáveis</small></div>
+        <div class="interv-pp" id="d-col20">—</div>
+      </div>
+      <div class="interv-row">
+        <div class="interv-desc">−40 mg/dL<small>mantendo as demais variáveis</small></div>
+        <div class="interv-pp" id="d-col40">—</div>
+      </div>
+    </div>
+
+    <div class="interv-group">
+      <div class="interv-group-label">Se reduzir a Glicemia</div>
+      <div class="interv-row">
+        <div class="interv-desc">−20 mg/dL<small>mantendo as demais variáveis</small></div>
+        <div class="interv-pp" id="d-gli20">—</div>
+      </div>
+      <div class="interv-row">
+        <div class="interv-desc">−40 mg/dL<small>mantendo as demais variáveis</small></div>
+        <div class="interv-pp" id="d-gli40">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Modelo treinado com 200 pacientes &middot; Acurácia out-of-sample: 75–77%<br>
+    PESC-COPPE UFRJ &middot; COS846 &middot; 2026<br>
+    <strong>Uso exclusivamente acadêmico &mdash; não substitui avaliação médica</strong>
+  </div>
+
+</div>
+
+<script>
+  const W   = [0.1415, 1.2802, 0.6179, 1.2721];
+  const MED = [216.0, 49.3, 119.9];
+  const STD = [46.1,  13.8,  41.1];
+
+  const sigmoid = s => 1 / (1 + Math.exp(-s));
+
+  function calcRisk(col, age, gli) {
+    const s = W[0]
+      + W[1] * (col - MED[0]) / STD[0]
+      + W[2] * (age - MED[1]) / STD[1]
+      + W[3] * (gli - MED[2]) / STD[2];
+    return sigmoid(s);
+  }
+
+  function fmtPP(delta) {
+    if (delta < 0.0005) return '<span class="pp-neutral">sem efeito</span>';
+    return `<span class="pp-good">↓ ${(delta * 100).toFixed(1)} pp</span>`;
+  }
+
+  function update() {
+    const col = Math.min(Math.max(parseFloat(document.getElementById('col-n').value) || 216, 50), 600);
+    const age = Math.min(Math.max(parseFloat(document.getElementById('age-n').value) || 49, 10), 90);
+    const gli = Math.min(Math.max(parseFloat(document.getElementById('gli-n').value) || 120, 30), 600);
+
+    const r = calcRisk(col, age, gli);
+    const pct = (r * 100).toFixed(1);
+
+    document.getElementById('risk-num').innerHTML = pct + '<sup>%</sup>';
+    document.getElementById('g-pin').style.left     = (r * 100) + '%';
+    document.getElementById('g-overlay').style.width = ((1 - r) * 100) + '%';
+
+    const badge = document.getElementById('risk-badge');
+    const num   = document.getElementById('risk-num');
+
+    if (r < 0.30) {
+      num.style.color   = '#1D9E75';
+      badge.textContent = 'Baixo risco';
+      badge.style.background = '#E1F5EE';
+      badge.style.color      = '#0F6E56';
+    } else if (r < 0.50) {
+      num.style.color   = '#BA7517';
+      badge.textContent = 'Risco moderado';
+      badge.style.background = '#FAEEDA';
+      badge.style.color      = '#854F0B';
+    } else if (r < 0.70) {
+      num.style.color   = '#D85A30';
+      badge.textContent = 'Alto risco';
+      badge.style.background = '#FAECE7';
+      badge.style.color      = '#993C1D';
+    } else {
+      num.style.color   = '#A32D2D';
+      badge.textContent = 'Risco muito alto';
+      badge.style.background = '#FCEBEB';
+      badge.style.color      = '#791F1F';
+    }
+
+    // Warning: out-of-training-range
+    const outOfRange = col < 150 || col > 310 || gli < 60 || gli > 180;
+    document.getElementById('warn-box').classList.toggle('visible', outOfRange);
+
+    document.getElementById('d-col20').innerHTML = fmtPP(r - calcRisk(Math.max(col - 20, 50), age, gli));
+    document.getElementById('d-col40').innerHTML = fmtPP(r - calcRisk(Math.max(col - 40, 50), age, gli));
+    document.getElementById('d-gli20').innerHTML = fmtPP(r - calcRisk(col, age, Math.max(gli - 20, 30)));
+    document.getElementById('d-gli40').innerHTML = fmtPP(r - calcRisk(col, age, Math.max(gli - 40, 30)));
+  }
+
+  function sync(rid, nid) {
+    const r = document.getElementById(rid);
+    const n = document.getElementById(nid);
+    r.addEventListener('input', () => { n.value = r.value; update(); });
+    n.addEventListener('change', () => {
+      const v = Math.min(Math.max(parseFloat(n.value) || 0, parseFloat(r.min)), parseFloat(r.max));
+      n.value = v; r.value = v; update();
+    });
+  }
+
+  sync('col-r', 'col-n');
+  sync('age-r', 'age-n');
+  sync('gli-r', 'gli-n');
+  update();
+</script>
+</body>
+</html>
